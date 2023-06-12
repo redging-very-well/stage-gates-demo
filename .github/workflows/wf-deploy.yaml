@@ -31,7 +31,7 @@ jobs:
         # Show the artifact that we've downloaded from the release:
         ls -la ./
 
-        echo '### Release deployed! 🚀' >> $GITHUB_STEP_SUMMARY
+        echo '### Deployed to ${{ inputs.environment_name }}! 🚀' >> $GITHUB_STEP_SUMMARY
         echo '---' >> $GITHUB_STEP_SUMMARY
+        echo "Git ref: $GITHUB_REF" >> $GITHUB_STEP_SUMMARY
         echo $(du -h dist.zip) >> $GITHUB_STEP_SUMMARY
-        echo "Environment: ${{ inputs.environment_name }}" >> $GITHUB_STEP_SUMMARY
