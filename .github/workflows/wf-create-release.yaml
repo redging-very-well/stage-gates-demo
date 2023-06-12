@@ -38,6 +38,5 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: ./dist.zip
-        draft: true # by marking this as draft, we are able to "release" it via the GH UI, thereby triggering a deployment
         tag_name: ${{ steps.tag_version.outputs.new_tag }}
         body: ${{ steps.tag_version.outputs.changelog }}

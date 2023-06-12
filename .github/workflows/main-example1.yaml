@@ -14,21 +14,26 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/wf-build.yaml
+    with:
+      artifact_name: app
 
   deploy-dev:
     needs: build
     uses: ./.github/workflows/wf-deploy.yaml
     with:
+      artifact_name: app
       environment_name: dev
 
   deploy-preprod:
     needs: deploy-dev
     uses: ./.github/workflows/wf-deploy.yaml
     with:
+      artifact_name: app
       environment_name: preprod
 
   deploy-prod:
     needs: deploy-preprod
     uses: ./.github/workflows/wf-deploy.yaml
     with:
+      artifact_name: app
       environment_name: prod

@@ -24,11 +24,12 @@ jobs:
     needs: build
     uses: ./.github/workflows/wf-deploy.yaml
     with:
+      artifact_name: app
       environment_name: dev
 
   create-release:
     needs: deploy-dev
     uses: ./.github/workflows/wf-create-release.yaml
     with:
-      environment_name: preprod
       artifact_name: app
+      environment_name: preprod
