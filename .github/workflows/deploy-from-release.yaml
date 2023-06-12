@@ -15,7 +15,7 @@ jobs:
     - name: show vars
       run: |
         echo inputs.release_tag: ${{ inputs.release_tag }}
-        echo GITHUB_REF: ${{ GITHUB_REF }}
+        echo GITHUB_REF: $GITHUB_REF
 
     - uses: robinraju/release-downloader@v1.8
       with:
