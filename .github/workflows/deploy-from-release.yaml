@@ -28,6 +28,10 @@ jobs:
         name: app
         path: ./dist.zip
 
+    - name: output summary
+      run: |
+        echo '🐶 Fetching artifacts from release tagged ${{ inputs.release_tag }}' >> $GITHUB_STEP_SUMMARY
+
   deploy-preprod:
     needs: fetch-artifacts
     uses: ./.github/workflows/wf-deploy.yaml

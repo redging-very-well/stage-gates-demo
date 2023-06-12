@@ -2,7 +2,7 @@ on:
   workflow_call:
     inputs:
       artifact_name:
-        description: Name of artifact bundle to download
+        description: The name of artifact bundle to download.
         type: string
 jobs:
   build:
