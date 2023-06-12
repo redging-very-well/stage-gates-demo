@@ -1,0 +1,44 @@
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: The tag of the release to deploy.
+        required: true
+
+jobs:
+  fetch-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+    - name: show vars
+      run: |
+        echo inputs.release_tag: ${{ inputs.release_tag }}
+        echo GITHUB_REF: ${{ GITHUB_REF }}
+
+    - uses: robinraju/release-downloader@v1.8
+      with:
+        tag: ${{ inputs.release_tag }}
+        fileName: dist.zip
+        out-file-path: ./
+        extract: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    # Publish our packaged artefacts for consumption by other stages:
+    - uses: actions/upload-artifact@v3
+      with:
+        name: app
+        path: ./dist.zip
+
+  deploy-preprod:
+    needs: fetch-artifacts
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      environment_name: preprod
+
+  deploy-prod:
+    needs: deploy-preprod
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      environment_name: prod
