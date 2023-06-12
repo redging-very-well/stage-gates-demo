@@ -1,0 +1,16 @@
+**/.vs
+**/.vscode
+**/.DS_Store
+**/.idea
+*.iml
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+coverage/**
+node_modules
+dist.zip

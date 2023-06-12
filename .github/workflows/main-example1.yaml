@@ -11,31 +11,24 @@ on:
     branches:
       - main
 
-# jobs:
-#   call-rwf:
-#     uses: ./.github/workflows/rw.yaml
-#     with:
-#       publish: true
-
-
 jobs:
   build:
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/wf-build.yaml
 
   deploy-dev:
     needs: build
-    uses: ./.github/workflows/deploy.yaml
+    uses: ./.github/workflows/wf-deploy.yaml
     with:
       environment_name: dev
 
   deploy-preprod:
     needs: deploy-dev
-    uses: ./.github/workflows/deploy.yaml
+    uses: ./.github/workflows/wf-deploy.yaml
     with:
       environment_name: preprod
 
   deploy-prod:
     needs: deploy-preprod
-    uses: ./.github/workflows/deploy.yaml
+    uses: ./.github/workflows/wf-deploy.yaml
     with:
       environment_name: prod

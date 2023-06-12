@@ -7,7 +7,7 @@ on:
         type: string
 jobs:
   deploy:
-    name: "deploy to ${{ inputs.environment_name }}"
+    name: "Deploy to ${{ inputs.environment_name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment_name }}
     steps:

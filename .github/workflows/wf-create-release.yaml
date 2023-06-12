@@ -1,0 +1,34 @@
+on:
+  workflow_call:
+    inputs:
+      artifact_name:
+        description: Name of artifact bundle to download
+        required: true
+        type: string
+
+      environment_name:
+        description: "the name of the environment we are deploying to"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment_name }}
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: ./
+
+    - name: create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./dist.zip

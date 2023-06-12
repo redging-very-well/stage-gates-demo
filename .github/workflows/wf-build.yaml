@@ -1,0 +1,33 @@
+on:
+  workflow_call:
+    inputs:
+      artifact_name:
+        description: Name of artifact bundle to download
+        required: false
+        default: app
+        type: string
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: "npm"
+        registry-url: https://npm.pkg.github.com/
+
+    - name: Test, and package
+      working-directory: src/api
+      run: |
+        npm ci
+        npm run test
+        npm run dist
+
+    # Publish our packaged artefacts for consumption by other stages:
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: src/api/dist.zip
