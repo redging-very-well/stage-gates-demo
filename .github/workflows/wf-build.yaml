@@ -18,6 +18,7 @@ jobs:
         node-version: 16
         cache: "npm"
         registry-url: https://npm.pkg.github.com/
+        cache-dependency-path: src/api
 
     - name: Test, and package
       working-directory: src/api
