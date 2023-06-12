@@ -1,0 +1,41 @@
+name: Stage-gates-main
+concurrency:
+  group: stage-gates-main-${{ github.ref_name }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# jobs:
+#   call-rwf:
+#     uses: ./.github/workflows/rw.yaml
+#     with:
+#       publish: true
+
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+
+  deploy-dev:
+    needs: build
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment_name: dev
+
+  deploy-preprod:
+    needs: deploy-dev
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment_name: preprod
+
+  deploy-prod:
+    needs: deploy-preprod
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment_name: prod
