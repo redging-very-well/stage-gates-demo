@@ -39,4 +39,10 @@ jobs:
       with:
         files: ./dist.zip
         tag_name: ${{ steps.tag_version.outputs.new_tag }}
-        body: ${{ steps.tag_version.outputs.changelog }}
+        body: |
+          To deploy this release, [run this workflow](https://github.com/redging-very-well/stage-gates-demo/actions/workflows/deploy-from-release.yaml), specifying the tag `steps.tag_version.outputs.new_tag`.
+
+          ---
+
+          ## Changelog
+          ${{ steps.tag_version.outputs.changelog }}
