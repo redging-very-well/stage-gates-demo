@@ -1,0 +1,66 @@
+name: Stage-gates-repository-dispatch
+concurrency:
+  group: stage-gates-repository-dispatch-${{ github.ref_name }}
+  cancel-in-progress: true
+
+on:
+  repository_dispatch:
+    types: [deploy_release]
+
+    # {
+    #   "event_type": "deploy_release",
+    #   "client_payload": {
+    #     "version": "v1.2",
+    #     "release_id": "123"
+    #   }
+    # }
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ github.event.client_payload.release_id }},
+              draft: false
+            })
+
+  fetch-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: robinraju/release-downloader@v1.8
+        with:
+          tag: ${{ github.event.client_payload.version }}
+          fileName: dist.zip
+          out-file-path: ./
+          extract: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Publish our packaged artefacts for consumption by other stages:
+      - uses: actions/upload-artifact@v3
+        with:
+          name: app
+          path: ./dist.zip
+
+      - name: output summary
+        run: |
+          echo '🐶 Fetching artifacts from release tagged ${{ github.event.client_payload.version }}' >> $GITHUB_STEP_SUMMARY
+
+  deploy-preprod:
+    needs: fetch-artifacts
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      artifact_name: app
+      environment_name: preprod
+
+  deploy-prod:
+    needs: deploy-preprod
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      artifact_name: app
+      environment_name: prod

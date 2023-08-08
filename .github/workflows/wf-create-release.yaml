@@ -20,29 +20,45 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment_name }}
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: ${{ inputs.artifact_name }}
-        path: ./
+      - name: download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./
 
-    - name: Bump version and push tag
-      id: tag_version
-      uses: mathieudutour/github-tag-action@v6.1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: create release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ./dist.zip
-        tag_name: ${{ steps.tag_version.outputs.new_tag }}
-        body: |
-          To deploy this release, [run this workflow](https://github.com/redging-very-well/stage-gates-demo/actions/workflows/deploy-from-release.yaml), specifying the tag `${{ steps.tag_version.outputs.new_tag }}`.
+      - name: create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./dist.zip
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          draft: true
+          body: |
+            To deploy this release, [run this workflow](https://github.com/redging-very-well/stage-gates-demo/actions/workflows/deploy-from-release.yaml), specifying the tag `${{ steps.tag_version.outputs.new_tag }}`.
 
-          ---
+            ---
 
-          ## Changelog
-          ${{ steps.tag_version.outputs.changelog }}
+            ## Changelog
+            ${{ steps.tag_version.outputs.changelog }}
+
+      - name: Trigger repository dispatch event
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: "deploy_release",
+              client_payload: {
+                "version": "${{ steps.tag_version.outputs.new_tag }}",
+                "release_id": "${{ steps.create_release.outputs.id }}"
+              }
+            })
