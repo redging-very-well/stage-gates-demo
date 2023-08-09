@@ -62,10 +62,6 @@ jobs:
               run_id: 5804107797
             });
 
-            # console.log(workflowRun);
-            # console.log('workflow id: ' + workflowRun.data.id);
-            # console.log('workflow sha: ' + workflowRun.data.head_sha);
-
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
