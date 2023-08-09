@@ -11,11 +11,25 @@ on:
     #   "event_type": "deploy_release",
     #   "client_payload": {
     #     "version": "v1.2",
-    #     "release_id": "123"
+    #     "release_id": "123",
+    #     "artefact_id": "456"
     #   }
     # }
 
 jobs:
+  download-artefact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.getArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: ${{ github.event.client_payload.artefact_id }}
+            })
+
   publish-release:
     runs-on: ubuntu-latest
     steps:
@@ -23,7 +37,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.actions.updateRelease({
+            github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: ${{ github.event.client_payload.release_id }},
@@ -31,6 +45,7 @@ jobs:
             })
 
   fetch-artifacts:
+    needs: publish-release
     runs-on: ubuntu-latest
     steps:
       - uses: robinraju/release-downloader@v1.8
