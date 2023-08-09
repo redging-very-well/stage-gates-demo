@@ -47,8 +47,8 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            const script = require('./.github/workflows/fetch-artefacts.js')
-            await script({github, context, fetch, 5804107797});
+            const script = require('./.github/workflows/fetch-artefacts.js');
+            await script({github, context, fetch, runId: 5804107797});
 
       - name: ls
         run: |
