@@ -48,11 +48,10 @@ jobs:
         with:
           script: |
 
-            console.log(context);
-            console.log(`context.repo: ${context.repo}`);
-            console.log(`context.repo.owner: ${context.repo.owner}`);
-            console.log(`context.repo.repo: ${context.repo.repo}`);
-
+            const runId = 5804107797;
+            const url = `https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}/artifacts`;
+            const result = await github.request(url);
+            console.log(result);
 
             const workflowRun = github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
