@@ -44,6 +44,10 @@ jobs:
     needs: build
     permissions:
       actions: read
+      contents: read
+      deployments: read
+      packages: read
+      statuses: read
     steps:
       - uses: actions/upload-artifact@v3
         with:
@@ -54,6 +58,9 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+
+            console.log(context);
+
 
             const workflowRun = github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
