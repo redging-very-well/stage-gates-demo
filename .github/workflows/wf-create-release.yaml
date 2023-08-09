@@ -49,6 +49,11 @@ jobs:
             ## Changelog
             ${{ steps.tag_version.outputs.changelog }}
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./
+
       - name: Trigger repository dispatch event
         uses: actions/github-script@v6
         with:
