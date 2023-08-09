@@ -12,7 +12,7 @@ on:
     #   "client_payload": {
     #     "version": "v1.2",
     #     "release_id": "123",
-    #     "artefact_id": "456"
+    #     "calling_workflow_run_id": 3456789
     #   }
     # }
 
@@ -24,11 +24,22 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.actions.getArtifact({
+
+            const listArtifacts = github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.client_payload.calling_workflow_run_id }}
+            });
+
+            console.log(JSON.stringify(listArtifacts, null, 2));
+
+            const artifactResponse = github.rest.actions.getArtifact({
               owner: context.repo.owner,
               repo: context.repo.repo,
               artifact_id: ${{ github.event.client_payload.artefact_id }}
-            })
+            });
+
+            console.log(JSON.stringify(artifactResponse, null, 2));
 
   publish-release:
     runs-on: ubuntu-latest

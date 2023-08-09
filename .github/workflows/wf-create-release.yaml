@@ -49,23 +49,10 @@ jobs:
             ## Changelog
             ${{ steps.tag_version.outputs.changelog }}
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ${{ inputs.artifact_name }}
-          path: ./
-
       - name: Trigger repository dispatch event
         uses: actions/github-script@v6
         with:
           script: |
-
-            const artifacts = github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.run_id }}
-            });
-
-            console.log(JSON.stringify(artifacts, null, 2));
 
             github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
@@ -74,6 +61,6 @@ jobs:
               client_payload: {
                 "version": "${{ steps.tag_version.outputs.new_tag }}",
                 "release_id": "${{ steps.create_release.outputs.id }}",
-                "artefact_id": ""
+                "calling_workflow_run_id": ${{ github.run_id }}
               }
             })
