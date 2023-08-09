@@ -53,12 +53,22 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+
+            const artifacts = github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.run_id }}
+            });
+
+            console.log(JSON.stringify(artifacts, null, 2));
+
             github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
               event_type: "deploy_release",
               client_payload: {
                 "version": "${{ steps.tag_version.outputs.new_tag }}",
-                "release_id": "${{ steps.create_release.outputs.id }}"
+                "release_id": "${{ steps.create_release.outputs.id }}",
+                "artefact_id": ""
               }
             })
