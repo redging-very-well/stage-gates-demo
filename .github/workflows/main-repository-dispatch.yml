@@ -11,11 +11,36 @@ on:
     #   "event_type": "deploy_release",
     #   "client_payload": {
     #     "version": "v1.2",
-    #     "release_id": "123"
+    #     "release_id": "123",
+    #     "calling_workflow_run_id": 3456789
     #   }
     # }
 
 jobs:
+  download-artefact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        uses: actions/github-script@v6
+        with:
+          script: |
+
+            const listArtifacts = github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.client_payload.calling_workflow_run_id }}
+            });
+
+            console.log(JSON.stringify(listArtifacts, null, 2));
+
+            const artifactResponse = github.rest.actions.getArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: ${{ github.event.client_payload.artefact_id }}
+            });
+
+            console.log(JSON.stringify(artifactResponse, null, 2));
+
   publish-release:
     runs-on: ubuntu-latest
     steps:
@@ -23,7 +48,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.actions.updateRelease({
+            github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: ${{ github.event.client_payload.release_id }},
@@ -31,6 +56,7 @@ jobs:
             })
 
   fetch-artifacts:
+    needs: publish-release
     runs-on: ubuntu-latest
     steps:
       - uses: robinraju/release-downloader@v1.8
