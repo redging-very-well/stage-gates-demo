@@ -45,31 +45,50 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/github-script@v6
-        id: fetch-artefacts
+        id: fetch_artefacts
         with:
           result-encoding: string
           script: |
             const script = require('./.github/workflows/fetch-artefacts.js');
             return await script({github, context, fetch, runId: 5804107797});
 
-      - name: ls
-        run: |
-          ls -la
-          echo ${{ steps.fetch-artefacts.outputs.result }}
-
       - uses: actions/github-script@v6
+        id: get_workflow_details
         with:
           script: |
-
-            const workflowRun = await github.rest.actions.getWorkflowRun({
+            return await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: 5804107797
             });
 
-            console.log(workflowRun);
-            console.log('workflow id: ' + workflowRun.data.id);
-            console.log('workflow sha: ' + workflowRun.data.head_sha);
+            # console.log(workflowRun);
+            # console.log('workflow id: ' + workflowRun.data.id);
+            # console.log('workflow sha: ' + workflowRun.data.head_sha);
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          commit_sha: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.fetch_artefacts.outputs.result }}
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          target_commitish: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
+          draft: false
+          generate_release_notes: true
+          body: |
+            Release created for tag `${{ steps.tag_version.outputs.new_tag }}`.
+
+            ---
+
+            ## Changelog
+            ${{ steps.tag_version.outputs.changelog }}
 
 # const resultThisRun = await github.request(`https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}/artifacts`);
 # console.log(resultThisRun);
