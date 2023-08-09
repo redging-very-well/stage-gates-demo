@@ -50,7 +50,7 @@ jobs:
           result-encoding: string
           script: |
             const script = require('./.github/workflows/fetch-artefacts.js');
-            await script({github, context, fetch, runId: 5804107797});
+            return await script({github, context, fetch, runId: 5804107797});
 
       - name: ls
         run: |
@@ -67,6 +67,8 @@ jobs:
             });
 
             console.log(workflowRun);
+            console.log('workflow id: ' + workflowRun.data.id);
+            console.log('workflow sha: ' + workflowRun.data.head_sha);
 
 # const resultThisRun = await github.request(`https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}/artifacts`);
 # console.log(resultThisRun);
