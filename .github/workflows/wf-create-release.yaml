@@ -53,12 +53,14 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+
             github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
               event_type: "deploy_release",
               client_payload: {
                 "version": "${{ steps.tag_version.outputs.new_tag }}",
-                "release_id": "${{ steps.create_release.outputs.id }}"
+                "release_id": "${{ steps.create_release.outputs.id }}",
+                "calling_workflow_run_id": ${{ github.run_id }}
               }
             })
