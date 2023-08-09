@@ -17,23 +17,54 @@ jobs:
     with:
       artifact_name: app
 
-  deploy-dev:
+  # deploy-dev:
+  #   needs: build
+  #   uses: ./.github/workflows/wf-deploy.yaml
+  #   with:
+  #     artifact_name: app
+  #     environment_name: dev
+
+  # deploy-preprod:
+  #   needs: deploy-dev
+  #   uses: ./.github/workflows/wf-deploy.yaml
+  #   with:
+  #     artifact_name: app
+  #     environment_name: preprod
+
+  # deploy-prod:
+  #   needs: deploy-preprod
+  #   uses: ./.github/workflows/wf-deploy.yaml
+  #   with:
+  #     artifact_name: app
+  #     environment_name: prod
+
+  debug:
+    name: Debug
+    runs-on: ubuntu-latest
     needs: build
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: dev
+    steps:
+      - uses: actions/upload-artifact@v3
+        with:
+          name: eg
+          path: ./
 
-  deploy-preprod:
-    needs: deploy-dev
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: preprod
+      - name: Trigger repository dispatch event
+        uses: actions/github-script@v6
+        with:
+          script: |
 
-  deploy-prod:
-    needs: deploy-preprod
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: prod
+            const listArtifacts = github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.run_id }}
+            });
+
+            console.log(JSON.stringify(listArtifacts, null, 2));
+
+# const artifactResponse = github.rest.actions.getArtifact({
+#   owner: context.repo.owner,
+#   repo: context.repo.repo,
+#   artifact_id: 0
+# });
+
+# console.log(JSON.stringify(artifactResponse, null, 2));
