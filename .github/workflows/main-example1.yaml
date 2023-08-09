@@ -43,56 +43,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: list-artefacts
-        id: list-artefacts
-        uses: actions/github-script@v6
+      - uses: actions/checkout@v3
+      - uses: actions/github-script@v6
         with:
           script: |
-            return await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: 5804107797
-            });
-
-      - name: download-artefacts
-        run: |
-          echo "${{steps.list-artefacts.outputs.result}}"
-
-          for row in $(echo "${{steps.list-artefacts.outputs.result}}" | jq -r '.[]'); do
-            url=$(echo $siteJSON | jq -r .archive_download_url)
-            name=$(echo $siteJSON | jq -r .name).zip
-
-            curl -L \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              $url \
-              --output "$name"
-
-          done
-
-          ls -la
-
-      - name: fetch-artefacts
-        id: fetch-artefacts
-        uses: actions/github-script@v6
-        with:
-          script: |
-
-            const runId = 5804107797;
-            const resultOldRun = await github.request(`https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}/artifacts`);
-            console.log(JSON.stringify(resultOldRun.data.artifacts, null, 2));
-
-            return await github.rest.actions.downloadArtifact({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              artifact_id: resultOldRun.data.artifacts[0].id,
-              archive_format: 'zip'
-            });
+            const script = require('./.github/workflows/fetch-artefacts.js')
+            await script({github, context, fetch, 5804107797});
 
       - name: ls
         run: |
-          echo "${{steps.fetch-artefacts.outputs.result}}"
           ls -la
 
 # const resultThisRun = await github.request(`https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}/artifacts`);
