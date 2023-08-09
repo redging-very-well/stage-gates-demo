@@ -53,14 +53,15 @@ jobs:
             const result = await github.request(url);
             console.log(result);
 
-            const workflowRun = await github.paginate(github.rest.actions.getWorkflowRun({
+            const workflowRuns = await github.paginate(github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: 5804107797
             }));
 
-            console.log(JSON.stringify(workflowRun, null, 2));
-
+            for (const wr of workflowRuns) {
+              console.log(JSON.stringify(wr, null, 2));
+            }
 
             const listArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
@@ -68,7 +69,9 @@ jobs:
               run_id: 5804107797
             }));
 
-            console.log(JSON.stringify(listArtifacts, null, 2));
+            for (const art of listArtifacts) {
+              console.log(JSON.stringify(art, null, 2));
+            }
 
 
             const thisListArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts({
@@ -77,7 +80,9 @@ jobs:
               run_id: ${{ github.run_id }}
             }));
 
-            console.log(JSON.stringify(thisListArtifacts, null, 2));
+            for (const art of thisListArtifacts) {
+              console.log(JSON.stringify(art, null, 2));
+            }
 
 # const artifactResponse = github.rest.actions.getArtifact({
 #   owner: context.repo.owner,
