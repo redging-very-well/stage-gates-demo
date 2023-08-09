@@ -17,11 +17,17 @@ module.exports = async ({ github, context, fetch, runId }) => {
     run_id: runId,
   });
 
+  const artefacts = [];
+
   for (let i = 0; i < response.data.artifacts.length; i++) {
     const item = response.data.artifacts[i];
 
     const url = item.archive_download_url;
     const path = `${item.name}.zip`;
     await downloadFile(fetch, url, path);
+
+    artefacts.push(path);
   }
+
+  return artefacts.join(",");
 };
