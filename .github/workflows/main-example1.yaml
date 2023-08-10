@@ -64,7 +64,12 @@ jobs:
               run_id: 5804107797
             });
 
+      - name: Output workflow
+        run: |
+          echo ${{ steps.get_workflow_details.outputs.result.data }}
+
       - name: Bump version and push tag
+        if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
@@ -72,6 +77,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: create release
+        if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
