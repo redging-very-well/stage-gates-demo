@@ -68,69 +68,47 @@ jobs:
 
             return data;
 
-      - name: Bump version and push tag
-        if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
+      - uses: actions/github-script@v6
+        name: set env vars
+        id: set_env_vars
         with:
-          commit_sha: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('result:');
+            console.log('${{ fromJSON(steps.get_workflow_details.outputs.result) }}');
+            console.log('');
+            console.log('${{ fromJSON(steps.get_workflow_details.outputs.result).head_sha }}');
 
-      - name: create release
-        if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{ steps.fetch_artefacts.outputs.result }}
-          tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          target_commitish: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
-          draft: false
-          generate_release_notes: true
-          body: |
-            Release created for tag `${{ steps.tag_version.outputs.new_tag }}`.
+            // TODO use this step to get the correct values for the commit, and branch for the next to stages conditionals and inputs.
+            core.setOutput('release_sha', '${{ fromJSON(steps.get_workflow_details.outputs.result).head_sha || github.sha }}');
+            core.setOutput('branch', '${{ fromJSON(steps.get_workflow_details.outputs.result).head_branch || github.ref }}');
 
-            ---
+      - name: test reading outputs
+        run: |
+          echo release_sha: ${{ steps.set_env_vars.outputs.release_sha }}
+          echo branch: ${{ steps.set_env_vars.outputs.branch }}
 
-            ## Changelog
-            ${{ steps.tag_version.outputs.changelog }}
+      # - name: Bump version and push tag
+      #   if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
+      #   id: tag_version
+      #   uses: mathieudutour/github-tag-action@v6.1
+      #   with:
+      #     commit_sha: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-# const resultThisRun = await github.request(`https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}/artifacts`);
-# console.log(resultThisRun);
+      # - name: create release
+      #   if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
+      #   id: create_release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     files: ${{ steps.fetch_artefacts.outputs.result }}
+      #     tag_name: ${{ steps.tag_version.outputs.new_tag }}
+      #     target_commitish: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
+      #     draft: false
+      #     generate_release_notes: true
+      #     body: |
+      #       Release created for tag `${{ steps.tag_version.outputs.new_tag }}`.
 
-# const workflowRuns = await github.paginate(github.rest.actions.getWorkflowRun({
-#   owner: context.repo.owner,
-#   repo: context.repo.repo,
-#   run_id: 5804107797
-# }));
+      #       ---
 
-# for (const wr of workflowRuns) {
-#   console.log(JSON.stringify(wr, null, 2));
-# }
-
-# const listArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts({
-#   owner: context.repo.owner,
-#   repo: context.repo.repo,
-#   run_id: 5804107797
-# }));
-
-# for (const art of listArtifacts) {
-#   console.log(JSON.stringify(art, null, 2));
-# }
-
-# const thisListArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts({
-#   owner: context.repo.owner,
-#   repo: context.repo.repo,
-#   run_id: ${{ github.run_id }}
-# }));
-
-# for (const art of thisListArtifacts) {
-#   console.log(JSON.stringify(art, null, 2));
-# }
-
-# const artifactResponse = github.rest.actions.getArtifact({
-#   owner: context.repo.owner,
-#   repo: context.repo.repo,
-#   artifact_id: 0
-# });
-
-# console.log(JSON.stringify(artifactResponse, null, 2));
+      #       ## Changelog
+      #       ${{ steps.tag_version.outputs.changelog }}

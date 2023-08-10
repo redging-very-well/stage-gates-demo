@@ -29,5 +29,5 @@ module.exports = async ({ github, context, fetch, runId }) => {
     artefacts.push(path);
   }
 
-  return artefacts.join(",");
+  return artefacts.join("\n");
 };
