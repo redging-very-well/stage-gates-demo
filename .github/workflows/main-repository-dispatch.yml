@@ -16,6 +16,8 @@ on:
     #   }
     # }
 
+    # "You can use context.payload.workflow_run.id to get the triggering workflow run id.""
+
 jobs:
   download-artefact:
     runs-on: ubuntu-latest

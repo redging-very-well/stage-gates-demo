@@ -17,23 +17,114 @@ jobs:
     with:
       artifact_name: app
 
-  deploy-dev:
+  # deploy-dev:
+  #   needs: build
+  #   uses: ./.github/workflows/wf-deploy.yaml
+  #   with:
+  #     artifact_name: app
+  #     environment_name: dev
+
+  # deploy-preprod:
+  #   needs: deploy-dev
+  #   uses: ./.github/workflows/wf-deploy.yaml
+  #   with:
+  #     artifact_name: app
+  #     environment_name: preprod
+
+  # deploy-prod:
+  #   needs: deploy-preprod
+  #   uses: ./.github/workflows/wf-deploy.yaml
+  #   with:
+  #     artifact_name: app
+  #     environment_name: prod
+
+  debug:
+    name: Debug
+    runs-on: ubuntu-latest
     needs: build
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: dev
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/github-script@v6
+        id: fetch_artefacts
+        with:
+          result-encoding: string
+          script: |
+            const script = require('./.github/workflows/fetch-artefacts.js');
+            return await script({github, context, fetch, runId: 5804107797});
 
-  deploy-preprod:
-    needs: deploy-dev
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: preprod
+      - uses: actions/github-script@v6
+        id: get_workflow_details
+        with:
+          script: |
+            return await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: 5804107797
+            });
 
-  deploy-prod:
-    needs: deploy-preprod
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: prod
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          commit_sha: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.fetch_artefacts.outputs.result }}
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          target_commitish: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
+          draft: false
+          generate_release_notes: true
+          body: |
+            Release created for tag `${{ steps.tag_version.outputs.new_tag }}`.
+
+            ---
+
+            ## Changelog
+            ${{ steps.tag_version.outputs.changelog }}
+
+# const resultThisRun = await github.request(`https://api.github.com/repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}/artifacts`);
+# console.log(resultThisRun);
+
+# const workflowRuns = await github.paginate(github.rest.actions.getWorkflowRun({
+#   owner: context.repo.owner,
+#   repo: context.repo.repo,
+#   run_id: 5804107797
+# }));
+
+# for (const wr of workflowRuns) {
+#   console.log(JSON.stringify(wr, null, 2));
+# }
+
+# const listArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts({
+#   owner: context.repo.owner,
+#   repo: context.repo.repo,
+#   run_id: 5804107797
+# }));
+
+# for (const art of listArtifacts) {
+#   console.log(JSON.stringify(art, null, 2));
+# }
+
+# const thisListArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts({
+#   owner: context.repo.owner,
+#   repo: context.repo.repo,
+#   run_id: ${{ github.run_id }}
+# }));
+
+# for (const art of thisListArtifacts) {
+#   console.log(JSON.stringify(art, null, 2));
+# }
+
+# const artifactResponse = github.rest.actions.getArtifact({
+#   owner: context.repo.owner,
+#   repo: context.repo.repo,
+#   artifact_id: 0
+# });
+
+# console.log(JSON.stringify(artifactResponse, null, 2));
