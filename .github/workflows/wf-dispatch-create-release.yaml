@@ -5,7 +5,6 @@ jobs:
   dispatch-create-release:
     name: Dispatch create release event
     runs-on: ubuntu-latest
-    environment: preprod
     permissions:
       contents: write
     steps:
