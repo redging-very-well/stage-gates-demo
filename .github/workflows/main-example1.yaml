@@ -17,98 +17,23 @@ jobs:
     with:
       artifact_name: app
 
-  # deploy-dev:
-  #   needs: build
-  #   uses: ./.github/workflows/wf-deploy.yaml
-  #   with:
-  #     artifact_name: app
-  #     environment_name: dev
-
-  # deploy-preprod:
-  #   needs: deploy-dev
-  #   uses: ./.github/workflows/wf-deploy.yaml
-  #   with:
-  #     artifact_name: app
-  #     environment_name: preprod
-
-  # deploy-prod:
-  #   needs: deploy-preprod
-  #   uses: ./.github/workflows/wf-deploy.yaml
-  #   with:
-  #     artifact_name: app
-  #     environment_name: prod
-
-  debug:
-    name: Debug
-    runs-on: ubuntu-latest
+  deploy-dev:
     needs: build
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/github-script@v6
-        id: fetch_artefacts
-        with:
-          result-encoding: string
-          script: |
-            const script = require('./.github/workflows/fetch-artefacts.js');
-            return await script({github, context, fetch, runId: 5804107797});
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      artifact_name: app
+      environment_name: dev
 
-      - uses: actions/github-script@v6
-        id: get_workflow_details
-        with:
-          script: |
-            const data = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: 5804107797
-            });
+  deploy-preprod:
+    needs: deploy-dev
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      artifact_name: app
+      environment_name: preprod
 
-            console.log(data);
-
-            return data;
-
-      - uses: actions/github-script@v6
-        name: set env vars
-        id: set_env_vars
-        with:
-          script: |
-            console.log('result:');
-            console.log('${{ fromJSON(steps.get_workflow_details.outputs.result) }}');
-            console.log('');
-            console.log('${{ fromJSON(steps.get_workflow_details.outputs.result).head_sha }}');
-
-            // TODO use this step to get the correct values for the commit, and branch for the next to stages conditionals and inputs.
-            core.setOutput('release_sha', '${{ fromJSON(steps.get_workflow_details.outputs.result).head_sha || github.sha }}');
-            core.setOutput('branch', '${{ fromJSON(steps.get_workflow_details.outputs.result).head_branch || github.ref }}');
-
-      - name: test reading outputs
-        run: |
-          echo release_sha: ${{ steps.set_env_vars.outputs.release_sha }}
-          echo branch: ${{ steps.set_env_vars.outputs.branch }}
-
-      # - name: Bump version and push tag
-      #   if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
-      #   id: tag_version
-      #   uses: mathieudutour/github-tag-action@v6.1
-      #   with:
-      #     commit_sha: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: create release
-      #   if: steps.get_workflow_details.outputs.result.data.head_branch == 'main' ||  steps.get_workflow_details.outputs.result.data.head_branch == 'master'
-      #   id: create_release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: ${{ steps.fetch_artefacts.outputs.result }}
-      #     tag_name: ${{ steps.tag_version.outputs.new_tag }}
-      #     target_commitish: ${{ steps.get_workflow_details.outputs.result.data.head_sha }}
-      #     draft: false
-      #     generate_release_notes: true
-      #     body: |
-      #       Release created for tag `${{ steps.tag_version.outputs.new_tag }}`.
-
-      #       ---
-
-      #       ## Changelog
-      #       ${{ steps.tag_version.outputs.changelog }}
+  deploy-prod:
+    needs: deploy-preprod
+    uses: ./.github/workflows/wf-deploy.yaml
+    with:
+      artifact_name: app
+      environment_name: prod

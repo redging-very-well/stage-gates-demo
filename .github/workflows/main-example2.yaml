@@ -27,9 +27,6 @@ jobs:
       artifact_name: app
       environment_name: dev
 
-  create-release:
+  dispatch-create-release:
     needs: deploy-dev
-    uses: ./.github/workflows/wf-create-release.yaml
-    with:
-      artifact_name: app
-      environment_name: preprod
+    uses: ./.github/workflows/wf-dispatch-create-release.yaml
