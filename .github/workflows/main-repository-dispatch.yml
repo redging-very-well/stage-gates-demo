@@ -20,7 +20,7 @@ jobs:
             console.log(context.payload);
 
             const script = require('./.github/workflows/fetch-artefacts.js');
-            await script({github, context, fetch, runId: context.payload.workflow_run.id });
+            await script({github, context, fetch, runId: context.payload.client_payload.workflow_run_id });
 
       - name: Bump version and push tag
         id: tag_version
