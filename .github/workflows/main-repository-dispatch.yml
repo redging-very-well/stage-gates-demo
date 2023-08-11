@@ -10,6 +10,10 @@ on:
 jobs:
   download-artefact:
     runs-on: ubuntu-latest
+    environment: preprod
+    permissions:
+      actions: read
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/github-script@v6
