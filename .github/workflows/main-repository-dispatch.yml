@@ -18,18 +18,26 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/github-script@v6
         name: Fetch artifacts
+        id: fetch-artifacts
         with:
           script: |
-            console.log('context.payload:');
-            console.log(context.payload);
-
             const script = require('./.github/workflows/fetch-artefacts.js');
             await script({github, context, fetch, runId: context.payload.client_payload.workflow_run_id });
+
+            const result = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.client_payload.workflow_run_id
+            });
+
+            core.setOutput('head_sha', result.data.head_sha);
+            core.setOutput('head_branch', result.data.head_branch);
 
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
+          commit_sha: ${{ steps.fetch-artifacts.outputs.head_sha }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: create release
@@ -38,7 +46,8 @@ jobs:
         with:
           files: ./dist.zip
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          draft: true
+          target_commitish: ${{ steps.fetch-artifacts.outputs.head_sha }}
+          generate_release_notes: true
           body: |
             To deploy this release, [run this workflow](https://github.com/redging-very-well/stage-gates-demo/actions/workflows/deploy-from-release.yaml), specifying the tag `${{ steps.tag_version.outputs.new_tag }}`.
 
