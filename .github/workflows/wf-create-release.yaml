@@ -57,7 +57,7 @@ jobs:
             github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              event_type: "deploy_release",
+              event_type: "create_release",
               client_payload: {
                 "version": "${{ steps.tag_version.outputs.new_tag }}",
                 "release_id": "${{ steps.create_release.outputs.id }}",

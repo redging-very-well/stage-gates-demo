@@ -5,80 +5,40 @@ concurrency:
 
 on:
   repository_dispatch:
-    types: [deploy_release]
-
-    # {
-    #   "event_type": "deploy_release",
-    #   "client_payload": {
-    #     "version": "v1.2",
-    #     "release_id": "123",
-    #     "calling_workflow_run_id": 3456789
-    #   }
-    # }
+    types: [create_release]
 
 jobs:
   download-artefact:
     runs-on: ubuntu-latest
     steps:
-      - name: Publish release
-        uses: actions/github-script@v6
+      - uses: actions/checkout@v3
+      - uses: actions/github-script@v6
+        name: Fetch artifacts
         with:
           script: |
+            console.log('context.payload:');
+            console.log(context.payload);
 
-            const listArtifacts = github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.client_payload.calling_workflow_run_id }}
-            });
+            const script = require('./.github/workflows/fetch-artefacts.js');
+            await script({github, context, fetch, runId: context.payload.workflow_run.id });
 
-            console.log(JSON.stringify(listArtifacts, null, 2));
-
-  publish-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish release
-        uses: actions/github-script@v6
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
         with:
-          script: |
-            github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: ${{ github.event.client_payload.release_id }},
-              draft: false
-            })
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-  fetch-artifacts:
-    needs: publish-release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: robinraju/release-downloader@v1.8
+      - name: create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          tag: ${{ github.event.client_payload.version }}
-          fileName: dist.zip
-          out-file-path: ./
-          extract: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./dist.zip
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          draft: true
+          body: |
+            To deploy this release, [run this workflow](https://github.com/redging-very-well/stage-gates-demo/actions/workflows/deploy-from-release.yaml), specifying the tag `${{ steps.tag_version.outputs.new_tag }}`.
 
-      # Publish our packaged artefacts for consumption by other stages:
-      - uses: actions/upload-artifact@v3
-        with:
-          name: app
-          path: ./dist.zip
+            ---
 
-      - name: output summary
-        run: |
-          echo '🐶 Fetching artifacts from release tagged ${{ github.event.client_payload.version }}' >> $GITHUB_STEP_SUMMARY
-
-  deploy-preprod:
-    needs: fetch-artifacts
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: preprod
-
-  deploy-prod:
-    needs: deploy-preprod
-    uses: ./.github/workflows/wf-deploy.yaml
-    with:
-      artifact_name: app
-      environment_name: prod
+            ## Changelog
+            ${{ steps.tag_version.outputs.changelog }}
