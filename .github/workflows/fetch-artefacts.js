@@ -14,9 +14,9 @@ const downloadFile = async (fetch, url, path) => {
 const downloadFileEx = async (github, url, path) => {
   const res = await github.request(url);
   console.log(`res.status: ${res.status}`);
-  console.log(`res.data.length: ${res.data.length}`);
+  //console.log(`res.data.length: ${res.data.length}`);
   //  const fileStream = fs.createWriteStream(path);
-  fs.writeFileSync(path, res.data);
+  fs.writeFileSync(path, Buffer.from(res.data));
   // await new Promise((resolve, reject) => {
   //   res.body.pipe(fileStream);
   //   res.body.on("error", reject);
