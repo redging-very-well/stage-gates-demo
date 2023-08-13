@@ -52,7 +52,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./artifacts.zip
+          files: /home/runner/work/_temp/_github_workflow/artifacts.zip
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
           target_commitish: ${{ steps.fetch-artifacts.outputs.head_sha }}
           generate_release_notes: true
