@@ -4,8 +4,9 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  repository_dispatch:
-    types: [create_release]
+  workflow_run:
+    workflows: [Stage-gates-eg2]
+    types: [completed]
 
 jobs:
   download-artefact:
