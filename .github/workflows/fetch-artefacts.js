@@ -10,7 +10,7 @@ const downloadFile = async (fetch, url, path) => {
   });
 };
 
-module.exports = async ({ github, context, fetch, runId }) => {
+module.exports = async ({ core, github, context, fetch, runId }) => {
   const response = await github.rest.actions.listWorkflowRunArtifacts({
     owner: context.repo.owner,
     repo: context.repo.repo,
@@ -19,6 +19,10 @@ module.exports = async ({ github, context, fetch, runId }) => {
 
   const artefacts = [];
 
+  core.info(
+    `Found ${response.data.artifacts.length} artifact(s) in workflow run ${runId}`
+  );
+
   for (let i = 0; i < response.data.artifacts.length; i++) {
     const item = response.data.artifacts[i];
 
@@ -26,6 +30,7 @@ module.exports = async ({ github, context, fetch, runId }) => {
     const path = `${item.name}.zip`;
     await downloadFile(fetch, url, path);
 
+    core.info(`Fetched artifact: ${path}`);
     artefacts.push(path);
   }
 
