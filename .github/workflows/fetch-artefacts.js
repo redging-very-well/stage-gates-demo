@@ -11,6 +11,21 @@ const downloadFile = async (fetch, url, path) => {
   });
 };
 
+const downloadFileEx = async (github, url, path) => {
+  const res = await github.request(url);
+  console.log(`res.status: ${res.status}`);
+  console.log(`res.data.length: ${res.data.length}`);
+  //  const fileStream = fs.createWriteStream(path);
+  fs.writeFileSync(path, res.data);
+  // await new Promise((resolve, reject) => {
+  //   res.body.pipe(fileStream);
+  //   res.body.on("error", reject);
+  //   fileStream.on("finish", resolve);
+  // });
+};
+
+//await script({core, github, context, fetch, runId: 5849993463, destination: '/home/runner/work/_temp/_github_workflow/artifacts' });
+
 module.exports = async ({
   core,
   github,
@@ -38,7 +53,8 @@ module.exports = async ({
 
     const url = item.archive_download_url;
     const artifactPath = path.join(destination, `${item.name}.zip`);
-    await downloadFile(fetch, url, artifactPath);
+    // await downloadFile(fetch, url, artifactPath);
+    await downloadFileEx(github, url, artifactPath);
 
     core.info(`Fetched artifact: ${artifactPath}`);
     artefacts.push(artifactPath);
