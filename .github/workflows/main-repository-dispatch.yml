@@ -24,7 +24,7 @@ jobs:
         with:
           script: |
             const script = require('./.github/workflows/fetch-artefacts.js');
-            await script({core, github, context, fetch, runId: context.payload.workflow_run.id, destination: '/home/runner/work/_temp/_github_workflow/artifacts' });
+            await script({core, github, context, runId: context.payload.workflow_run.id, destination: '/home/runner/work/_temp/_github_workflow/artifacts' });
 
             const result = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,

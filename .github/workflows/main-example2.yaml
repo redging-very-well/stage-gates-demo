@@ -26,35 +26,3 @@ jobs:
     with:
       artifact_name: app
       environment_name: dev
-
-  download-artefact:
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/github-script@v6
-        name: Fetch artifacts
-        id: fetch-artifacts
-        with:
-          script: |
-            const script = require('./.github/workflows/fetch-artefacts.js');
-            await script({core, github, context, fetch, runId: 5849993463, destination: '/home/runner/work/_temp/_github_workflow/artifacts' });
-
-            const result = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: 5849993463
-            });
-
-            core.setOutput('head_sha', result.data.head_sha);
-            core.setOutput('head_branch', result.data.head_branch);
-
-      # zip the artifacts for the release
-      - name: create zip Archive
-        working-directory: /home/runner/work/_temp/_github_workflow
-        shell: bash
-        run: |
-          cat artifacts/app.zip
-          zip -r artifacts.zip artifacts/
