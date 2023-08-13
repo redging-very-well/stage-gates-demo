@@ -23,7 +23,7 @@ jobs:
         with:
           script: |
             const script = require('./.github/workflows/fetch-artefacts.js');
-            await script({core, github, context, fetch, runId: context.payload.workflow_run.id });
+            await script({core, github, context, fetch, runId: context.payload.workflow_run.id, destination: '/home/runner/work/_temp/_github_workflow/artifacts' });
 
             const result = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
@@ -33,6 +33,13 @@ jobs:
 
             core.setOutput('head_sha', result.data.head_sha);
             core.setOutput('head_branch', result.data.head_branch);
+
+      # zip the artifacts for the release
+      - name: create zip Archive
+        working-directory: /home/runner/work/_temp/_github_workflow
+        shell: bash
+        run: |
+          zip -r artifacts.zip artifacts/
 
       - name: Bump version and push tag
         id: tag_version
@@ -45,7 +52,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./dist.zip
+          files: ./artifacts.zip
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
           target_commitish: ${{ steps.fetch-artifacts.outputs.head_sha }}
           generate_release_notes: true

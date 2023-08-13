@@ -14,23 +14,29 @@ jobs:
   fetch-artifacts:
     runs-on: ubuntu-latest
     steps:
-    - uses: robinraju/release-downloader@v1.8
-      with:
-        tag: ${{ inputs.release_tag }}
-        fileName: dist.zip
-        out-file-path: ./
-        extract: false
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: robinraju/release-downloader@v1.8
+        with:
+          tag: ${{ inputs.release_tag }}
+          fileName: artifacts.zip
+          out-file-path: /home/runner/work/_temp/_github_workflow/
+          extract: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    # Publish our packaged artefacts for consumption by other stages:
-    - uses: actions/upload-artifact@v3
-      with:
-        name: app
-        path: ./dist.zip
+      - name: unzip artifacts
+        shell: bash
+        working-directory: /home/runner/work/_temp/_github_workflow/
+        run: |
+          unzip artifacts.zip
 
-    - name: output summary
-      run: |
-        echo '🐶 Fetching artifacts from release tagged ${{ inputs.release_tag }}' >> $GITHUB_STEP_SUMMARY
+      # upload our packaged artefacts for consumption by other stages:
+      - uses: actions/upload-artifact@v3
+        with:
+          name: app
+          path: /home/runner/work/_temp/_github_workflow/artifacts
+
+      - name: output summary
+        run: |
+          echo '🐶 Fetching artifacts from release tagged ${{ inputs.release_tag }}' >> $GITHUB_STEP_SUMMARY
 
   deploy-preprod:
     needs: fetch-artifacts
